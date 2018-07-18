@@ -12,7 +12,6 @@ maintainer:          acairncross@gmail.com
 -- copyright:
 category:            Hardware
 build-type:          Simple
-extra-source-files:  ChangeLog.md
 cabal-version:       >=1.10
 
 library

@@ -19,17 +19,17 @@ import           Data.Bifunctor (bimap)
 -- >>> let two     = Dbl One
 -- >>> let sixteen = Dbl $ Dbl $ Dbl $ Dbl One
 
-data PNat (n :: Nat) where
-  One :: PNat 1
-  Dbl :: (KnownNat n, KnownNat m, m ~ (2*n)) => PNat n -> PNat m
+data DNat (n :: Nat) where
+  One :: DNat 1
+  Dbl :: (KnownNat n, KnownNat m, m ~ (2*n)) => DNat n -> DNat m
 
-instance Show (PNat n) where
+instance Show (DNat n) where
   show One     = "One"
   show (Dbl p) = "Dbl (" <> show p <> ")"
 
-pnatToSnat :: PNat n -> SNat n
-pnatToSnat One     = SNat
-pnatToSnat (Dbl n) = SNat
+dnatToSnat :: DNat n -> SNat n
+dnatToSnat One     = SNat
+dnatToSnat (Dbl n) = SNat
 
 minmax :: Ord a => Vec 2 a -> Vec 2 a
 minmax (x :> y :> Nil) = if x <= y then x :> y :> Nil else y :> x :> Nil
@@ -45,10 +45,10 @@ par
   -> Vec (n+m) a
 par f g = uncurry (++) . bimap f g . splitAtI
 
-shufflePattern :: PNat n -> Vec n (Index n)
+shufflePattern :: DNat n -> Vec n (Index n)
 shufflePattern (Dbl (Dbl n)) =
-  let (lo,  hi ) = splitAt (pnatToSnat $ Dbl n) indicesI
-      (lo', hi') = splitAt (pnatToSnat $ Dbl n) $ Clash.merge lo hi
+  let (lo,  hi ) = splitAt (dnatToSnat $ Dbl n) indicesI
+      (lo', hi') = splitAt (dnatToSnat $ Dbl n) $ Clash.merge lo hi
   in  lo' ++ (concat $ map swap $ unconcatI hi')
 
 scatter :: (Enum i, KnownNat n, KnownNat m) => Vec m i -> Vec (m+k) a -> Vec n a
@@ -61,11 +61,11 @@ gather = flip Clash.gather
 --
 -- prop> toList (bitonic two     xs) == sort (toList xs)
 -- prop> toList (bitonic sixteen xs) == sort (toList xs)
-bitonic :: Ord a => PNat n -> Vec n a -> Vec n a
+bitonic :: Ord a => DNat n -> Vec n a -> Vec n a
 bitonic (Dbl One) = minmax
 bitonic (Dbl n)   = merge (Dbl n) . par (bitonic n) (bitonic n)
 
-merge :: Ord a => PNat n -> Vec n a -> Vec n a
+merge :: Ord a => DNat n -> Vec n a -> Vec n a
 merge (Dbl One) = minmax
 merge (Dbl n)
   = concat . map minmax . unconcatI

@@ -13,6 +13,12 @@ import           Clash.Prelude  hiding (gather, merge, scatter)
 import qualified Clash.Prelude  as Clash
 import           Data.Bifunctor (bimap)
 
+-- $setup
+-- >>> :set -XDataKinds
+-- >>> import Data.List (sort)
+-- >>> let two     = Dbl One
+-- >>> let sixteen = Dbl $ Dbl $ Dbl $ Dbl One
+
 data PNat (n :: Nat) where
   One :: PNat 1
   Dbl :: (KnownNat n, KnownNat m, m ~ (2*n)) => PNat n -> PNat m
@@ -45,15 +51,19 @@ shufflePattern (Dbl (Dbl n)) =
       (lo', hi') = splitAt (pnatToSnat $ Dbl n) $ Clash.merge lo hi
   in  lo' ++ (concat $ map swap $ unconcatI hi')
 
-bitonic :: Ord a => PNat n -> Vec n a -> Vec n a
-bitonic (Dbl One) = minmax
-bitonic (Dbl n)   = merge (Dbl n) . par (bitonic n) (bitonic n)
-
 scatter :: (Enum i, KnownNat n, KnownNat m) => Vec m i -> Vec (m+k) a -> Vec n a
 scatter = Clash.scatter (lazyV undefined)
 
 gather :: (Enum i, KnownNat n) => Vec m i -> Vec n a -> Vec m a
 gather = flip Clash.gather
+
+-- | Sorts a vector of size 2^k, k > 0
+--
+-- prop> toList (bitonic two     xs) == sort (toList xs)
+-- prop> toList (bitonic sixteen xs) == sort (toList xs)
+bitonic :: Ord a => PNat n -> Vec n a -> Vec n a
+bitonic (Dbl One) = minmax
+bitonic (Dbl n)   = merge (Dbl n) . par (bitonic n) (bitonic n)
 
 merge :: Ord a => PNat n -> Vec n a -> Vec n a
 merge (Dbl One) = minmax

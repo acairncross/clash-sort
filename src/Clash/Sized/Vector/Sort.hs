@@ -34,28 +34,28 @@ dnatToSnat (Dbl n) = SNat
 minmax :: Ord a => Vec 2 a -> Vec 2 a
 minmax (x :> y :> Nil) = if x <= y then x :> y :> Nil else y :> x :> Nil
 
-swap :: Vec 2 a -> Vec 2 a
-swap (x :> y :> Nil) = y :> x :> Nil
-
 par
-  :: (KnownNat n, KnownNat m)
+  :: KnownNat n
   => (Vec n a -> Vec n a)
-  -> (Vec m a -> Vec m a)
-  -> Vec (n+m) a
-  -> Vec (n+m) a
+  -> (Vec n a -> Vec n a)
+  -> Vec (2*n) a
+  -> Vec (2*n) a
 par f g = uncurry (++) . bimap f g . splitAtI
 
 shufflePattern :: DNat n -> Vec n (Index n)
-shufflePattern (Dbl (Dbl n)) =
-  let (lo,  hi ) = splitAt (dnatToSnat $ Dbl n) indicesI
-      (lo', hi') = splitAt (dnatToSnat $ Dbl n) $ Clash.merge lo hi
-  in  lo' ++ (concat $ map swap $ unconcatI hi')
+shufflePattern (Dbl n) =
+  let (lo, hi ) = splitAt (dnatToSnat n) indicesI
+  in  Clash.merge lo hi
 
-scatter :: (Enum i, KnownNat n, KnownNat m) => Vec m i -> Vec (m+k) a -> Vec n a
-scatter = Clash.scatter (lazyV undefined)
+shuffle :: DNat n -> Vec n a -> Vec n a
+shuffle (Dbl n) = scatter (shufflePattern (Dbl n))
+  where
+    scatter = Clash.scatter (lazyV undefined)
 
-gather :: (Enum i, KnownNat n) => Vec m i -> Vec n a -> Vec m a
-gather = flip Clash.gather
+unshuffle :: DNat n -> Vec n a -> Vec n a
+unshuffle (Dbl n) = gather (shufflePattern (Dbl n))
+  where
+    gather = flip Clash.gather
 
 -- | Sorts a vector of size 2^k, k > 0
 --
@@ -63,12 +63,15 @@ gather = flip Clash.gather
 -- prop> toList (bitonic sixteen xs) == sort (toList xs)
 bitonic :: Ord a => DNat n -> Vec n a -> Vec n a
 bitonic (Dbl One) = minmax
-bitonic (Dbl n)   = merge (Dbl n) . par (bitonic n) (bitonic n)
+bitonic (Dbl n)
+  = merge (Dbl n)
+  . par id reverse
+  . par (bitonic n) (bitonic n)
 
 merge :: Ord a => DNat n -> Vec n a -> Vec n a
 merge (Dbl One) = minmax
 merge (Dbl n)
   = concat . map minmax . unconcatI
-  . gather (shufflePattern (Dbl n))
+  . unshuffle (Dbl n)
   . par (merge n) (merge n)
-  . scatter (shufflePattern (Dbl n))
+  . shuffle (Dbl n)

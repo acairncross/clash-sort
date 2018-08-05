@@ -96,12 +96,12 @@ select (Dbl n) i@SNat
   . par (bitonic n) (bitonic n)
   where
     select' xs =
-      let (lo, hi) = splitAt (dnatToSnat n) xs
+      let (lo, hi) = splitAt (dnatToSnat n) $ par id reverse xs
       in case n %<=? i of
         LE Refl -> -- not $ i < n
-          select n (i `subSNat'` dnatToSnat n) hi
+          merge n hi !! (snatToNum i - snatToNum (dnatToSnat n))
         NLE Refl Refl -> -- i < n
-          select n i lo
+          merge n lo !! (snatToNum i)
 
 subSNat' :: forall n m. (m <= n) => SNat n -> SNat m -> SNat (n-m)
 subSNat' n@SNat m@SNat = SNat

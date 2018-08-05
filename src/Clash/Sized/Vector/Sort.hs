@@ -1,6 +1,7 @@
 {-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE GADTs             #-}
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE RankNTypes        #-}
 {-# LANGUAGE TypeFamilies      #-}
 {-# LANGUAGE TypeOperators     #-}
 
@@ -9,9 +10,11 @@
 
 module Clash.Sized.Vector.Sort where
 
-import           Clash.Prelude  hiding (gather, merge, scatter)
-import qualified Clash.Prelude  as Clash
-import           Data.Bifunctor (bimap)
+import           Clash.Prelude        hiding (gather, merge, scatter, select)
+import qualified Clash.Prelude        as Clash
+import           Data.Bifunctor       (bimap)
+import           Data.Type.Equality   ((:~:) (..))
+import           GHC.TypeLits.Compare ((:<=?) (..), (%<=?))
 
 -- $setup
 -- >>> :set -XDataKinds
@@ -78,3 +81,27 @@ merge (Dbl n)
   . shuffle (Dbl n)
   . par (merge n) (merge n)
   . unshuffle (Dbl n)
+
+-- | Selects the i-th smallest element of a vector of size 2^k, k >= 0.
+--
+-- prop> select sixteen d3 xs == (L.sort $ toList xs) L.!! 3
+select :: Ord a => DNat n -> SNat i -> Vec n a -> a
+select One SNat = head
+select (Dbl n) i@SNat
+  = select'
+  . unshuffle (Dbl n)
+  . concat . map minmax . unconcatI
+  . shuffle (Dbl n)
+  . par id reverse
+  . par (bitonic n) (bitonic n)
+  where
+    select' xs =
+      let (lo, hi) = splitAt (dnatToSnat n) xs
+      in case n %<=? i of
+        LE Refl -> -- not $ i < n
+          select n (i `subSNat'` dnatToSnat n) hi
+        NLE Refl Refl -> -- i < n
+          select n i lo
+
+subSNat' :: forall n m. (m <= n) => SNat n -> SNat m -> SNat (n-m)
+subSNat' n@SNat m@SNat = SNat

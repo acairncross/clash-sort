@@ -22,8 +22,10 @@ library
   build-depends:       base >=4.11 && <4.12
                      , bifunctors
                      , clash-prelude
+                     , constraints
                      , ghc-typelits-natnormalise
                      , ghc-typelits-knownnat
+                     , typelits-witnesses
   hs-source-dirs:      src
 
 test-suite doctests

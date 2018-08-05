@@ -15,7 +15,7 @@ import           Data.Bifunctor (bimap)
 
 -- $setup
 -- >>> :set -XDataKinds
--- >>> import Data.List (sort)
+-- >>> import qualified Data.List as L
 -- >>> let two     = Dbl One
 -- >>> let sixteen = Dbl $ Dbl $ Dbl $ Dbl One
 
@@ -61,8 +61,8 @@ unshuffle (Dbl n) = scatter (shufflePattern (Dbl n))
 
 -- | Sorts a vector of size 2^k, k >= 0
 --
--- prop> toList (bitonic two     xs) == sort (toList xs)
--- prop> toList (bitonic sixteen xs) == sort (toList xs)
+-- prop> toList (bitonic two     xs) == L.sort (toList xs)
+-- prop> toList (bitonic sixteen xs) == L.sort (toList xs)
 bitonic :: Ord a => DNat n -> Vec n a -> Vec n a
 bitonic One = id
 bitonic (Dbl One) = minmax

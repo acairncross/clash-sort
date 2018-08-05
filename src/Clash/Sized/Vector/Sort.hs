@@ -59,11 +59,12 @@ unshuffle (Dbl n) = scatter (shufflePattern (Dbl n))
   where
     scatter = Clash.scatter (lazyV undefined)
 
--- | Sorts a vector of size 2^k, k > 0
+-- | Sorts a vector of size 2^k, k >= 0
 --
 -- prop> toList (bitonic two     xs) == sort (toList xs)
 -- prop> toList (bitonic sixteen xs) == sort (toList xs)
 bitonic :: Ord a => DNat n -> Vec n a -> Vec n a
+bitonic One = id
 bitonic (Dbl One) = minmax
 bitonic (Dbl n)
   = merge (Dbl n)

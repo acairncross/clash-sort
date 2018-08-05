@@ -44,18 +44,20 @@ par f g = uncurry (++) . bimap f g . splitAtI
 
 shufflePattern :: DNat n -> Vec n (Index n)
 shufflePattern (Dbl n) =
-  let (lo, hi ) = splitAt (dnatToSnat n) indicesI
+  let (lo, hi) = splitAt (dnatToSnat n) indicesI
   in  Clash.merge lo hi
 
+-- A perfect shuffle
 shuffle :: DNat n -> Vec n a -> Vec n a
-shuffle (Dbl n) = scatter (shufflePattern (Dbl n))
-  where
-    scatter = Clash.scatter (lazyV undefined)
-
-unshuffle :: DNat n -> Vec n a -> Vec n a
-unshuffle (Dbl n) = gather (shufflePattern (Dbl n))
+shuffle (Dbl n) = gather (shufflePattern (Dbl n))
   where
     gather = flip Clash.gather
+
+-- The inverse of a perfect shuffle
+unshuffle :: DNat n -> Vec n a -> Vec n a
+unshuffle (Dbl n) = scatter (shufflePattern (Dbl n))
+  where
+    scatter = Clash.scatter (lazyV undefined)
 
 -- | Sorts a vector of size 2^k, k > 0
 --
@@ -72,6 +74,6 @@ merge :: Ord a => DNat n -> Vec n a -> Vec n a
 merge (Dbl One) = minmax
 merge (Dbl n)
   = concat . map minmax . unconcatI
-  . unshuffle (Dbl n)
-  . par (merge n) (merge n)
   . shuffle (Dbl n)
+  . par (merge n) (merge n)
+  . unshuffle (Dbl n)

@@ -19,7 +19,7 @@ library
   exposed-modules:     Clash.Sized.Vector.Sort
   -- other-modules:
   -- other-extensions:
-  build-depends:       base >=4.11 && <4.12
+  build-depends:       base >=4.10
                      , bifunctors
                      , clash-prelude
                      , constraints
@@ -33,7 +33,7 @@ test-suite doctests
   default-language:    Haskell2010
   main-is:             doctests.hs
   hs-source-dirs:      tests
-  build-depends:       base >=4.11 && <4.12
+  build-depends:       base >=4.10
                      , clash-prelude
                      , QuickCheck
                      , clash-sort

@@ -27,6 +27,7 @@ library
                      , ghc-typelits-knownnat
                      , typelits-witnesses >= 0.3.0.0
   hs-source-dirs:      src
+  ghc-options:       -fexpose-all-unfoldings
 
 test-suite doctests
   type:                exitcode-stdio-1.0

@@ -15,6 +15,7 @@ import qualified Clash.Prelude        as Clash
 import           Data.Bifunctor       (bimap)
 import           Data.Type.Equality   ((:~:) (..))
 import           GHC.TypeLits.Compare ((:<=?) (..), (%<=?))
+import Data.Semigroup ((<>))
 
 -- $setup
 -- >>> :set -XDataKinds

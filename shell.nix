@@ -1,5 +1,5 @@
-# { pkgs ? (import ./. {}).pkgs {} }:
-let
-  pkgs = (import ./. {}).pkgs;
-in
-  ((import ./. {}).clash-sort.env.overrideAttrs (old: {buildInputs = old.buildInputs ++ [pkgs.haskellPackages.clash-ghc];}))
+{ nixpkgs ? import ./nixpkgs.nix {} }:
+
+(import ./. {}).env.overrideAttrs (old: {
+  buildInputs = old.buildInputs ++ [nixpkgs.haskellPackages.clash-ghc];
+})

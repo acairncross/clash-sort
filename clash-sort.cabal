@@ -21,7 +21,7 @@ library
   -- other-extensions:
   build-depends:       base >=4.10
                      , bifunctors
-                     , clash-prelude
+                     , clash-prelude >= 1.0
                      , constraints
                      , ghc-typelits-natnormalise
                      , ghc-typelits-knownnat
